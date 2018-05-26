@@ -11,22 +11,30 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const typeorm_1 = require("typeorm");
 const BaseEntity_1 = require("typeorm/repository/BaseEntity");
-let Page = class Page extends BaseEntity_1.BaseEntity {
+const class_validator_1 = require("class-validator");
+const colors = ["Red", "Blue", "Yellow", "Green", "Magenta"];
+let Game = class Game extends BaseEntity_1.BaseEntity {
 };
 __decorate([
     typeorm_1.PrimaryGeneratedColumn(),
     __metadata("design:type", Number)
-], Page.prototype, "id", void 0);
+], Game.prototype, "id", void 0);
 __decorate([
+    class_validator_1.IsString(),
     typeorm_1.Column('text', { nullable: false }),
     __metadata("design:type", String)
-], Page.prototype, "title", void 0);
+], Game.prototype, "name", void 0);
 __decorate([
-    typeorm_1.Column('text', { nullable: false }),
+    class_validator_1.NotEquals(colors),
+    typeorm_1.Column('text', { nullable: true }),
     __metadata("design:type", String)
-], Page.prototype, "content", void 0);
-Page = __decorate([
+], Game.prototype, "color", void 0);
+__decorate([
+    typeorm_1.Column('json', { nullable: true }),
+    __metadata("design:type", Object)
+], Game.prototype, "board", void 0);
+Game = __decorate([
     typeorm_1.Entity()
-], Page);
-exports.default = Page;
+], Game);
+exports.default = Game;
 //# sourceMappingURL=entity.js.map
