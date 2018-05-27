@@ -1,8 +1,12 @@
 import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm'
 import { BaseEntity } from 'typeorm/repository/BaseEntity'
-import { NotEquals, IsString/*Contains*/ } from 'class-validator'
+import { ValidateNested, IsIn, IsString } from 'class-validator'
 
-const colors= ["Red", "Blue", "Yellow", "Green", "Magenta"]
+export const moves = (board1, board2) => 
+        board1
+        .map((row, y) => row.filter((cell, x) => board2[y][x] !== cell))
+        .reduce((a, b) => a.concat(b))
+        .length
 
 @Entity()
 
@@ -12,15 +16,15 @@ export default class Game extends BaseEntity {
   id?: number
 
   @IsString()
-  @Column('text', {nullable:false})
+  @Column('text', {nullable:true})
   name: string
 
-  // @Contains(colors)
-  @NotEquals(colors)
   @Column('text', {nullable:true})
+  // @IsIn(["Red", "Blue", "Yellow", "Green", "Magenta"])
   color: string 
 
+  @ValidateNested()
   @Column('json', {nullable:true})
-  board: JSON
+  board: string [][]
 
 }

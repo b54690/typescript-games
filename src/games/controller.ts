@@ -5,6 +5,7 @@
 
 import {JsonController, Get, Post, BodyParam, Body, BadRequestError, HttpCode, NotFoundError, Param, Put, MethodNotAllowedError,} from 'routing-controllers'
 import Game from './entity'
+import {moves} from './entity'
 
 @JsonController()
 export default class GameController {
@@ -23,16 +24,79 @@ export default class GameController {
     //assigned a random color. 
     //http post :4000/games name="ellies game"
 
+        //When a **game starts**, your app should 
+    //set the board to an empty board. The board 
+    //is a two dimensional array that contains 
+    //three arrays with three times the letter 'o'.
+
     @Post('/games')
     @HttpCode(201)
-    createGame(@Body() game: Game) {
-      const setColor = () => {
+    async createGame(@Body() game: Game) {
+      const boardColor = () => {
         const colors= ["Red", "Blue", "Yellow", "Green", "Magenta"]
         return colors[Math.floor(Math.random()* colors.length)]
       }
-      game.color = setColor()
+        const newBoard = () => { 
+        const defaultBoard = [
+            ['o', 'o', 'o'],
+            ['o', 'o', 'o'],
+            ['o', 'o', 'o']
+          ]
+
+          const startingBoard = JSON.stringify(defaultBoard)
+          const playBoard = JSON.parse(startingBoard)
+          return playBoard
+        }
+
+        game.board = newBoard()
+        game.color = boardColor()
+      
+
       console.log(`the new game color is ${game.color}`)
       return game.save()
-      
 }
+
+    //Add an endpoint `PUT /games/:id` or 
+    //`PATCH /games/:id` that allows to 
+    //overwrite one or more fields of the game. 
+    //E.g. calling `PUT /games` with 
+    //JSON body `{ "name": "new name" }` 
+    //should update the name, same for 
+    //color and board (not for id). 
+    //http put :4000/games/1 name="Barrys wicked game"
+
+    //When a **game is changed** and the board field is updated, 
+    //make sure there is only 1 move is made. That means that 
+    //only one element out of the 9 can be changed into 
+    //something else. You can use the function below to count 
+    //the number of moves between two boards. If somebody tries 
+    //to make more moves, return a `HTTP 400 Bad Request` 
+    //response. If everything is fine, update the board 
+    //field of the game.  \*\* 
+
+    @Put('/games/:id')
+    async updateGame(
+        @Param('id') id: number,
+        @Body() update: Partial<Game>
+    ) {
+
+        const game = await Game.findOne(id)
+        if (!game) throw new NotFoundError('Cannot find game')
+
+        const colors = ["Red", "Blue", "Yellow", "Green", "Magenta"]
+
+        if(update.color !== undefined && colors.indexOf(update.color) < 0) 
+        throw new BadRequestError('Color choice is not permitted. Please choose from:' + colors.join(','))
+
+        
+        // const numberOfMoves = moves(game.board, update.board)
+        // if(numberOfMoves !== 1) throw new BadRequestError('Player is allowed to make ONE move per go')
+        
+    
+        return Game.merge(game, update).save()
+    }
+
+ 
+        
+
 }
