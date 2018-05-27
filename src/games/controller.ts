@@ -3,9 +3,8 @@
 //all the games (with envelope!)
 //http :4000/games
 
-import {JsonController, Get, Post, BodyParam, Body, BadRequestError, HttpCode, NotFoundError, Param, Put, MethodNotAllowedError,} from 'routing-controllers'
-import Game from './entity'
-import {moves} from './entity'
+import {JsonController, Get, Post, Body, BadRequestError, HttpCode, NotFoundError, Param, Put,} from 'routing-controllers'
+import Game, { moves, boardColor, colorsAllowed, colorIsAllowed} from './entity'
 
 @JsonController()
 export default class GameController {
@@ -31,31 +30,13 @@ export default class GameController {
 
     @Post('/games')
     @HttpCode(201)
-    async createGame(@Body() game: Game) {
-      const boardColor = () => {
-        const colors= ["Red", "Blue", "Yellow", "Green", "Magenta"]
-        return colors[Math.floor(Math.random()* colors.length)]
-      }
-        const newBoard = () => { 
-        const defaultBoard = [
-            ['o', 'o', 'o'],
-            ['o', 'o', 'o'],
-            ['o', 'o', 'o']
-          ]
-
-          const startingBoard = JSON.stringify(defaultBoard)
-          const playBoard = JSON.parse(startingBoard)
-          return playBoard
-        }
-
-        game.board = newBoard()
+    async createGame(@Body() game: Game)
+    {
         game.color = boardColor()
-      
-
-      console.log(`the new game color is ${game.color}`)
-      return game.save()
+        console.log(`the new game color is ${game.color}`)
+        const newGame = await Game.create(game).save()
+        return {newGame}
 }
-
     //Add an endpoint `PUT /games/:id` or 
     //`PATCH /games/:id` that allows to 
     //overwrite one or more fields of the game. 
@@ -77,21 +58,18 @@ export default class GameController {
     @Put('/games/:id')
     async updateGame(
         @Param('id') id: number,
-        @Body() update: Partial<Game>
+        @Body() update: Partial<Game> 
     ) {
 
         const game = await Game.findOne(id)
+
         if (!game) throw new NotFoundError('Cannot find game')
 
-        const colors = ["Red", "Blue", "Yellow", "Green", "Magenta"]
+        if(update.color !== colorIsAllowed(update.color)) 
+        throw new BadRequestError('Color choice is not permitted. Please choose from:' + colorsAllowed.join(','))
 
-        if(update.color !== undefined && colors.indexOf(update.color) < 0) 
-        throw new BadRequestError('Color choice is not permitted. Please choose from:' + colors.join(','))
-
-        
-        // const numberOfMoves = moves(game.board, update.board)
-        // if(numberOfMoves !== 1) throw new BadRequestError('Player is allowed to make ONE move per go')
-        
+        if(update.board && moves(game.board, update.board) !== 1) 
+        throw new BadRequestError('Player is allowed to make ONE move per go')
     
         return Game.merge(game, update).save()
     }

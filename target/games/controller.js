@@ -20,32 +20,19 @@ let GameController = class GameController {
         return { games };
     }
     async createGame(game) {
-        const boardColor = () => {
-            const colors = ["Red", "Blue", "Yellow", "Green", "Magenta"];
-            return colors[Math.floor(Math.random() * colors.length)];
-        };
-        const newBoard = () => {
-            const defaultBoard = [
-                ['o', 'o', 'o'],
-                ['o', 'o', 'o'],
-                ['o', 'o', 'o']
-            ];
-            const startingBoard = JSON.stringify(defaultBoard);
-            const playBoard = JSON.parse(startingBoard);
-            return playBoard;
-        };
-        game.board = newBoard();
-        game.color = boardColor();
+        game.color = entity_1.boardColor();
         console.log(`the new game color is ${game.color}`);
-        return game.save();
+        const newGame = await entity_1.default.create(game).save();
+        return { newGame };
     }
     async updateGame(id, update) {
         const game = await entity_1.default.findOne(id);
         if (!game)
             throw new routing_controllers_1.NotFoundError('Cannot find game');
-        const colors = ["Red", "Blue", "Yellow", "Green", "Magenta"];
-        if (update.color !== undefined && colors.indexOf(update.color) < 0)
-            throw new routing_controllers_1.BadRequestError('Color choice is not permitted. Please choose from:' + colors.join(','));
+        if (update.color !== entity_1.colorIsAllowed(update.color))
+            throw new routing_controllers_1.BadRequestError('Color choice is not permitted. Please choose from:' + entity_1.colorsAllowed.join(','));
+        if (update.board && entity_1.moves(game.board, update.board) !== 1)
+            throw new routing_controllers_1.BadRequestError('Player is allowed to make ONE move per go');
         return entity_1.default.merge(game, update).save();
     }
 };

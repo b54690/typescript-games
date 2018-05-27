@@ -16,6 +16,20 @@ exports.moves = (board1, board2) => board1
     .map((row, y) => row.filter((cell, x) => board2[y][x] !== cell))
     .reduce((a, b) => a.concat(b))
     .length;
+exports.boardColor = () => {
+    const colors = ['red', 'blue', 'green', 'yellow', 'magenta'];
+    return colors[Math.floor(Math.random() * colors.length)];
+};
+exports.colorsAllowed = ['red', 'blue', 'green', 'yellow', 'magenta'];
+exports.colorIsAllowed = (color) => {
+    if (exports.colorsAllowed.includes(color))
+        return color;
+};
+const defaultBoard = [
+    ["o", "o", "o"],
+    ["o", "o", "o"],
+    ["o", "o", "o"]
+];
 let Game = class Game extends BaseEntity_1.BaseEntity {
 };
 __decorate([
@@ -32,9 +46,8 @@ __decorate([
     __metadata("design:type", String)
 ], Game.prototype, "color", void 0);
 __decorate([
-    class_validator_1.ValidateNested(),
-    typeorm_1.Column('json', { nullable: true }),
-    __metadata("design:type", Array)
+    typeorm_1.Column('json', { default: defaultBoard }),
+    __metadata("design:type", Object)
 ], Game.prototype, "board", void 0);
 Game = __decorate([
     typeorm_1.Entity()
